@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'edit_profile_page.dart';
+import 'edit_pengalaman_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,94 +20,134 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  // Data Profil Utama
+  String nama = 'Fikri Lazuardi Fadilla';
+  String tentangSaya = 'Saat ini saya berfokus pada Web3 Industri';
+  String pendidikan = 'Teknik Informatika Universitas Pasundan';
+  String kontak = 'fikri@student.unpas.ac.id';
+  String pengalamanStatis = 'UI/UX Design\nWeb Developer';
+  String proyek = '• Web Company Profile\n• Hemat Bites (Aplikasi untuk mencari makanan murah)';
+  List<String> skills = ['Flutter', 'Laravel', 'UI/UX', 'PHP', 'Figma'];
+  String? imagePath;
+
+  // Data Pengalaman Dinamis (Hasil Sidebar Edit Pengalaman)
+  String? uploadedJudul;
+  String? uploadedDeskripsi;
+  String? uploadedImagePath;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // TUGAS MANDIRI 2: Mengubah theme color Scaffold menjadi warna soft
-      backgroundColor: const Color(0xFFF4F6F9), // Warna abu-abu kebiruan soft
-
+      backgroundColor: const Color(0xFFF4F6F9),
       appBar: AppBar(
         title: const Text('Profil Saya'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black, // Menyesuaikan warna teks dengan appbar terang
-        actions: [
-          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
-        ],
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
       drawer: Drawer(
         child: ListView(
           children: [
-            const DrawerHeader( // Menambahkan const agar rapi
+            const DrawerHeader(
               decoration: BoxDecoration(color: Colors.blue),
               child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
-            const ListTile(leading: Icon(Icons.home), title: Text('Beranda')),
-            const ListTile(leading: Icon(Icons.person), title: Text('Profil')),
-
-            // TUGAS MANDIRI 5: AlertDialog pada item Pengaturan
             ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Pengaturan'),
-              onTap: () {
-                Navigator.pop(context); // Tutup drawer terlebih dahulu
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Pengaturan'),
-                    content: const Text('Fitur pengaturan belum tersedia.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Tutup'),
-                      ),
-                    ],
-                  ),
-                );
-              },
+              leading: const Icon(Icons.person),
+              title: const Text('Profil'),
+              onTap: () => Navigator.pop(context),
             ),
-            const ListTile(leading: Icon(Icons.info), title: Text('Tentang')),
-
             ListTile(
               leading: const Icon(Icons.widgets),
               title: const Text('Widget Gallery'),
-              onTap: () {
-                Navigator.pop(context); // Menutup drawer
-                Navigator.push(
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.add_to_photos),
+              title: const Text('Upload Pengalaman'),
+              onTap: () async {
+                Navigator.pop(context);
+                final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const GalleryHome()),
+                  MaterialPageRoute(
+                    builder: (context) => EditPengalamanPage(
+                      initialJudul: uploadedJudul,
+                      initialDeskripsi: uploadedDeskripsi,
+                      initialImagePath: uploadedImagePath,
+                    ),
+                  ),
                 );
+
+                if (result != null) {
+                  setState(() {
+                    uploadedJudul = result['judul'];
+                    uploadedDeskripsi = result['deskripsi'];
+                    uploadedImagePath = result['imagePath'];
+                  });
+                }
               },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Pengaturan'),
+              onTap: () => Navigator.pop(context),
             ),
           ],
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(30),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Header Profil
             Center(
               child: Column(
                 children: [
-                  // TUGAS MANDIRI 1: Mengganti CircleAvatar dengan AssetImage dari folder lokal
-                  const CircleAvatar(
-                    radius: 50,
-                    // Pastikan nama file di bawah ini sesuai dengan foto di folder assets Anda
-                    backgroundImage: AssetImage('asset/fotosaya.png'),
-                    backgroundColor: Colors.transparent,
+                  Container(
+                    width: 160,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 4),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 2)
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: imagePath != null && imagePath!.isNotEmpty
+                          ? (kIsWeb
+                          ? Image.network(
+                        imagePath!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset('asset/fotosaya.png', fit: BoxFit.cover);
+                        },
+                      )
+                          : Image.file(
+                        File(imagePath!),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset('asset/fotosaya.png', fit: BoxFit.cover);
+                        },
+                      ))
+                          : Image.asset('asset/fotosaya.png', fit: BoxFit.cover),
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Fikri Lazuardi',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  const SizedBox(height: 14),
+                  Text(
+                    nama,
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 4),
                   Text(
                     'Mahasiswa Teknik Informatika Unpas',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                    style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                   ),
                 ],
               ),
@@ -112,23 +156,74 @@ class ProfilePage extends StatelessWidget {
             const Row(
               children: [
                 Expanded(child: StatBox(label: 'Post', value: '55')),
-                Expanded(child: StatBox(label: 'Teman', value: '178')),
-                Expanded(child: StatBox(label: 'Like', value: '256k')),
+                Expanded(child: StatBox(label: 'Teman', value: '278')),
+                Expanded(child: StatBox(label: 'Like', value: '492k')),
               ],
             ),
-            const SizedBox(height: 24),
-            const SectionCard(
+            const SizedBox(height: 30),
+
+            SectionCard(
               icon: Icons.info_outline,
               title: 'Tentang Saya',
-              content: 'Saat ini saya berfokus pada Web3 Industri',
+              content: tentangSaya,
             ),
-            const SectionCard(
+            SectionCard(
               icon: Icons.school,
               title: 'Pendidikan',
-              content: 'Teknik Informatika\nFokus: UI/UX Design & Web Dev',
+              content: pendidikan,
+            ),
+            SectionCard(
+              icon: Icons.email_outlined,
+              title: 'Kontak',
+              content: kontak,
             ),
 
-            // TUGAS MANDIRI 3: Section ke-5 berjudul "Skills" berisi Wrap dan 5 Chip
+            // KARTU PENGALAMAN DINAMIS (Muncul jika ada data)
+            if (uploadedJudul != null && uploadedJudul!.isNotEmpty)
+              Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                color: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.work_history, color: Colors.blue, size: 28),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Pengalaman (Terbaru)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 10),
+                            if (uploadedImagePath != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: kIsWeb
+                                      ? Image.network(uploadedImagePath!, width: double.infinity, height: 150, fit: BoxFit.cover)
+                                      : Image.file(File(uploadedImagePath!), width: double.infinity, height: 150, fit: BoxFit.cover),
+                                ),
+                              ),
+                            Text(uploadedJudul!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                            const SizedBox(height: 4),
+                            Text(uploadedDeskripsi ?? '', style: const TextStyle(height: 1.4)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            SectionCard(
+              icon: Icons.folder_open,
+              title: 'Proyek',
+              content: proyek,
+            ),
+
             Card(
               margin: const EdgeInsets.only(bottom: 12),
               color: Colors.white,
@@ -146,15 +241,9 @@ class ProfilePage extends StatelessWidget {
                           const Text('Skills', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 12),
                           Wrap(
-                            spacing: 8, // Jarak horizontal
-                            runSpacing: 8, // Jarak vertikal jika turun baris
-                            children: const [
-                              Chip(label: Text('Flutter')),
-                              Chip(label: Text('Android Studio')),
-                              Chip(label: Text('UI/UX Design')),
-                              Chip(label: Text('Dart')),
-                              Chip(label: Text('Figma')),
-                            ],
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: skills.map((s) => Chip(label: Text(s))).toList(),
                           ),
                         ],
                       ),
@@ -163,41 +252,44 @@ class ProfilePage extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 80),
+            const SizedBox(height: 20),
           ],
         ),
       ),
-
-      // TUGAS MANDIRI 4: Menampilkan SnackBar saat FAB ditekan
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Edit profil belum tersedia'),
-              duration: Duration(seconds: 2),
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EditProfilePage(
+                initialNama: nama,
+                initialTentang: tentangSaya,
+                initialPendidikan: pendidikan,
+                initialKontak: kontak,
+                initialProyek: proyek,
+                initialImagePath: imagePath,
+              ),
             ),
           );
-        },
-        label: const Text('Edit'),
-        icon: const Icon(Icons.edit),
-      ),
 
-      // TUGAS MANDIRI 6: Mengganti BottomNavigationBar menjadi NavigationBar (Material 3)
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: 0,
-        onDestinationSelected: (int index) {},
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.person), label: 'Profil'),
-          NavigationDestination(icon: Icon(Icons.message), label: 'Pesan'),
-          NavigationDestination(icon: Icon(Icons.settings), label: 'Setting'),
-        ],
+          if (result != null) {
+            setState(() {
+              nama = result['nama'];
+              tentangSaya = result['tentang'];
+              pendidikan = result['pendidikan'];
+              kontak = result['kontak'];
+              proyek = result['proyek'];
+              imagePath = result['imagePath'];
+            });
+          }
+        },
+        label: const Text('Edit Profil'),
+        icon: const Icon(Icons.edit),
       ),
     );
   }
 }
 
-// === HELPER WIDGETS ===
 class StatBox extends StatelessWidget {
   final String label;
   final String value;
@@ -219,18 +311,13 @@ class SectionCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String content;
-  const SectionCard({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.content,
-  });
+  const SectionCard({super.key, required this.icon, required this.title, required this.content});
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: Colors.white, // Menyamakan warna latar dengan card Skills
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -251,125 +338,6 @@ class SectionCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class GalleryHome extends StatelessWidget {
-  const GalleryHome({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final categories = [
-      ('Display', Icons.image, Colors.indigo),
-      ('Input', Icons.edit, Colors.teal),
-    ];
-    return Scaffold(
-      appBar: AppBar(title: const Text('Widget Gallery')),
-      body: ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: categories.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 8),
-      itemBuilder: (context, i) {
-        final (name, icon, color) = categories[i];
-        return Card(
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: color,
-              child: Icon(icon, color: Colors.white),
-            ),
-            title: Text(name),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CategoryPage(name: name)),
-              );
-            },
-          ),
-        );
-      },
-    ),
-    );
-  }
-}
-
-class CategoryPage extends StatelessWidget {
-  final String name;
-  const CategoryPage({super.key, required this.name});
-
-  @override
-  Widget build(BuildContext context) {
-    Widget bodyContent = Center(child: Text('Konten kategori $name'));
-
-    if (name == 'Display') bodyContent = const DisplayDemo();
-    if (name == 'Input') bodyContent = const InputDemo();
-
-    return Scaffold(
-      appBar: AppBar(title: Text(name)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: bodyContent,
-      ),
-    );
-  }
-}
-
-class DisplayDemo extends StatelessWidget {
-  const DisplayDemo({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Card', style: TextStyle(fontWeight: FontWeight.bold)),
-        Card(
-          child: ListTile(
-            leading: Icon(Icons.album),
-            title: Text('Judul Item'),
-            subtitle: Text('Sub-judul'),
-          ),
-        ),
-        SizedBox(height: 16),
-        Text('Chip', style: TextStyle(fontWeight: FontWeight.bold)),
-        Wrap(
-          spacing: 8,
-          children: [
-            Chip(label: Text('Flutter')),
-            Chip(label: Text('Dart')),
-            Chip(label: Text('Mobile')),
-          ],
-        ),
-        SizedBox(height: 16),
-        Text('Badge (Widget Tambahan)', style: TextStyle(fontWeight: FontWeight.bold)),
-        Badge(
-          label: Text('3'),
-          child: Icon(Icons.notifications, size: 40),
-        ),
-      ],
-    );
-  }
-}
-
-class InputDemo extends StatelessWidget {
-  const InputDemo({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('TextField'),
-        SizedBox(height: 4),
-        TextField(
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Nama',
-            hintText: 'Ketik nama Anda',
-          ),
-        ),
-      ],
     );
   }
 }
